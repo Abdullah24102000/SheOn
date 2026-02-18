@@ -1,12 +1,10 @@
 import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../supabaseClient';
 import { translations } from '../translations';
 import { Trash2, Plus, Minus, ShoppingBag, Truck } from 'lucide-react';
 
 const CheckoutPage = () => {
-    const navigate = useNavigate();
     const { cart = [], removeFromCart, updateQuantity, setCart, clearCart } = useCart();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
@@ -65,22 +63,23 @@ const CheckoutPage = () => {
             message += `*━━━━━━━━━━━━━━━*%0A`;
             message += `*💰 ${lang === 'en' ? 'Total' : 'الإجمالي'}: ${total} EGP*`;
 
+            localStorage.removeItem('sheon_cart');
             if (clearCart) {
                 clearCart();
             } else if (setCart) {
                 setCart([]);
             }
-            localStorage.removeItem('sheon_cart');
 
             const whatsappUrl = `https://wa.me/201029472254?text=${message}`;
             window.open(whatsappUrl, '_blank');
             
-            navigate('/');
+            setTimeout(() => {
+                window.location.href = '/';
+            }, 3000);
 
         } catch (err) {
             console.error("Submission Error:", err);
             alert(lang === 'en' ? "Submission Failed: " + err.message : "فشل الإرسال: " + err.message);
-        } finally {
             setLoading(false);
         }
     };
