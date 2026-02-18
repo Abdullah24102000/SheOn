@@ -1,10 +1,12 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { supabase } from '../supabaseClient';
 import { translations } from '../translations';
 import { Trash2, Plus, Minus, ShoppingBag, Truck } from 'lucide-react';
 
 const CheckoutPage = () => {
+    const navigate = useNavigate();
     const { cart = [], removeFromCart, updateQuantity, setCart, clearCart } = useCart();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState({ name: '', phone: '', address: '' });
@@ -38,7 +40,6 @@ const CheckoutPage = () => {
         setLoading(true);
 
         try {
-            // 1. محاولة الإرسال لـ Supabase
             const { error: supabaseError } = await supabase
                 .from('Orders')
                 .insert([{
@@ -53,7 +54,6 @@ const CheckoutPage = () => {
 
             if (supabaseError) throw supabaseError;
 
-            // 2. تجهيز الرسالة
             let message = lang === 'en' ? `*📦 New Order from SHEON*%0A` : `*📦 طلب جديد من SHEON*%0A`;
             message += `*${lang === 'en' ? 'Name' : 'الاسم'}:* ${formData.name}%0A`;
             message += `*${lang === 'en' ? 'Phone' : 'الموبايل'}:* ${formData.phone}%0A`;
@@ -65,7 +65,6 @@ const CheckoutPage = () => {
             message += `*━━━━━━━━━━━━━━━*%0A`;
             message += `*💰 ${lang === 'en' ? 'Total' : 'الإجمالي'}: ${total} EGP*`;
 
-            // 3. تنظيف السلة (طريقة آمنة)
             if (clearCart) {
                 clearCart();
             } else if (setCart) {
@@ -73,9 +72,10 @@ const CheckoutPage = () => {
             }
             localStorage.removeItem('sheon_cart');
 
-            // 4. الانتقال للواتساب (تأكد من فتح الرابط في نافذة جديدة إذا استمرت المشكلة)
             const whatsappUrl = `https://wa.me/201029472254?text=${message}`;
-            window.location.assign(whatsappUrl);
+            window.open(whatsappUrl, '_blank');
+            
+            navigate('/');
 
         } catch (err) {
             console.error("Submission Error:", err);
